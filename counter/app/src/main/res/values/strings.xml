@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">立木ｶｳﾝﾀｰ</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">アプリ設定</string>
+    <string name="user_name">テストユーザー</string>
+    <string name="user_address">test@example.com</string>
+    <string name="action_version">バージョン情報</string>
+    <string name="nav_counter">カウンター</string>
+    <string name="nav_list">カウント一覧</string>
+    <string name="title_forest_group">林班</string>
+    <string name="title_small_group">小班</string>
+    <string name="title_start">音声入力スタート</string>
+    <string name="title_stop">音声入力ストップ</string>
+
+
+</resources>
