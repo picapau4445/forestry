@@ -35,12 +35,13 @@ public class SpeechUtil {
         String strDiameter = resultsString.replaceAll("[^0-9]", "");
 
         // TODO:音声入力されたテキストデータから専門用語のみ辞書データから引き当てる
-        if(treeTypeHash.containsKey(strType)) {
-            data.setKind(treeTypeHash.get(strType));
-        }
-        else {
-            return null;
-        }
+        data.setKind(strType);
+        //if(treeTypeHash.containsKey(strType)) {
+        //    data.setKind(treeTypeHash.get(strType));
+        //}
+        //else {
+        //    return null;
+        //}
 
         if(strDiameter != null && !TextUtils.isEmpty(strDiameter)) {
             try {

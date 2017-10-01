@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
+import forestry.counter.db.DBTimberOperation;
 import forestry.counter.dto.Timber;
 import forestry.counter.util.SpeechUtil;
 
@@ -42,12 +43,14 @@ public class CounterActivity extends AppCompatActivity implements TextToSpeech.O
     private EditText editSmallGroup;
     private TextView textResult;
 
+    private DBTimberOperation dbTimber;
+
     private int forestGroup = 0;
     private int smallGroup = 0;
     private String kind;
     private String dia;
 
-    //TODO:Activityの起動直後に不明なウェイトがある
+    //TODO:TextToSpeechのインスタンス生成で重くなっている→別スレッドか
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,6 +59,8 @@ public class CounterActivity extends AppCompatActivity implements TextToSpeech.O
         tts = new TextToSpeech(this, this);
 
         su = new SpeechUtil(getApplicationContext());
+
+        dbTimber = new DBTimberOperation(getApplicationContext());
 
         editForestGroup = new EditText(this);
         editForestGroup = (EditText)findViewById(R.id.editForestGroup);
@@ -89,19 +94,16 @@ public class CounterActivity extends AppCompatActivity implements TextToSpeech.O
             });
         }
 
-        Intent intent = getIntent();
+        //Intent intent = getIntent();
     }
 
     @Override
     protected void onResume() {
-        // TODO:onResumeで何か処理が必要になるか調べる
         super.onResume();
     }
 
     @Override
     protected void onPause() {
-        // TODO:onPauseで何か処理が必要になるか調べる
-        //stopListening();
         super.onPause();
     }
 
@@ -112,7 +114,10 @@ public class CounterActivity extends AppCompatActivity implements TextToSpeech.O
 
             if(tts != null && tts.isSpeaking()) {
                 tts.stop();
+
             }
+            tts.shutdown();
+            tts = null;
         }
         return super.onKeyDown(keyCode, event);
     }
@@ -204,6 +209,7 @@ public class CounterActivity extends AppCompatActivity implements TextToSpeech.O
             Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
             // Web検索モデル
             intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_WEB_SEARCH);
+            // TODO:オフラインモードの音声認識の精度は0に等しくなるので、辞書から引き当ては必須
             // 強制的にオフラインモードで使用させる
             //intent.putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true);
 
@@ -264,7 +270,6 @@ public class CounterActivity extends AppCompatActivity implements TextToSpeech.O
 
     public void displayResult(String resultsString) {
         // 結果エリアに表示
-        // TODO:ローカルDBに保存する必要あり
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd hh:mm:ss", Locale.JAPANESE);
         StringBuilder sbResult = new StringBuilder();
         sbResult.insert(0, textResult.getText().toString());
@@ -351,7 +356,7 @@ public class CounterActivity extends AppCompatActivity implements TextToSpeech.O
 
         public void onResults(Bundle results) {
             String convertString;
-            Timber data;
+            final Timber data;
 
             ArrayList results_array = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
 
@@ -369,10 +374,10 @@ public class CounterActivity extends AppCompatActivity implements TextToSpeech.O
                 return;
             }
 
-            // 音声テキストデータの保存
-            su.saveRealResult(resultsString);
+            // TODO:音声テキストデータの保存
+            //su.saveRealResult(resultsString);
 
-            // 音声テキストデータの変換
+            // TODO:音声テキストデータの変換
             data = su.convertResultToData(resultsString);
 
             // 樹種と胸高直径が取得できた場合
@@ -381,8 +386,15 @@ public class CounterActivity extends AppCompatActivity implements TextToSpeech.O
                 convertString = data.toString();
                 speechText(convertString, false);
 
+                // TODO:池田町固定
+                data.setUser(1);
+                data.setPref(14);
+                data.setCity(14);
+                data.setForestGroup(forestGroup);
+                data.setSmallGroup(smallGroup);
+
                 // 立木カウントデータのローカル保存
-                //insertTimber();
+                dbTimber.insert(data);
 
                 // 変換後テキストデータの画面表示
                 displayResult(convertString);
@@ -392,7 +404,7 @@ public class CounterActivity extends AppCompatActivity implements TextToSpeech.O
                     @Override
                     public void run() {
                         try {
-                            //doPost(forestGroup, smallGroup, kind, dia);
+                            doPost(data);
                         } catch (Exception ex) {
                             System.out.println(ex);
                         }
@@ -411,12 +423,24 @@ public class CounterActivity extends AppCompatActivity implements TextToSpeech.O
         }
     }
 
-    public void doPost(int forestGroup, int smallGroup, String kind, String dia) throws IOException {
-        final String json = "{\"pref\":14, \"city\":14, \"rinpan\":" + forestGroup + ", \"shohan\":" + smallGroup + ", \"lat\":111.1,\"lon\":44, \"kind\":\"" + kind + "\", \"height\":20, \"dia\":" + dia + ", \"volume\":40}";
+    public void doPost(Timber data) throws IOException {
+        final String json = "{"
+                            + "\"pref\":" + data.getPref() + ", "
+                            + "\"city\":" + data.getCity() + ", "
+                            + "\"rinpan\":" + data.getForestGroup() + ", "
+                            + "\"shohan\":" + data.getSmallGroup() + ", "
+                            + "\"lat\":" + 0 + ", "
+                            + "\"lon\":" + 0 + ", "
+                            + "\"kind\":\"" + data.getKind() + "\", "
+                            + "\"height\":" + 0 + ", "
+                            + "\"dia\":" + data.getDia() + ", "
+                            + "\"volume\":" + 0
+                            + "}";
+
         try {
 
             HttpURLConnection con;
-            URL url = new URL("http://traceabilityrecord-dev.us-east-1.elasticbeanstalk.com/record/");
+            URL url = new URL(getApplicationContext().getString(R.string.url));
             con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("POST");
             con.setInstanceFollowRedirects(false);

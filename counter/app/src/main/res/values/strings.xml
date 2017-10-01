@@ -14,6 +14,7 @@
     <string name="title_small_group">小班</string>
     <string name="title_start">音声入力スタート</string>
     <string name="title_stop">音声入力ストップ</string>
+    <string name="url">http://traceabilityrecord-dev.us-east-1.elasticbeanstalk.com/record/</string>
 
 
 </resources>

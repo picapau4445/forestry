@@ -8,6 +8,7 @@ import android.os.Debug;
 public class DBOpenHelper extends SQLiteOpenHelper {
 
     private static final String DB_NAME = "forestry.counter.db";
+
     private static final String TABLE_OFFLINE_DATA_CREATE =
             "CREATE TABLE IF NOT EXISTS timber "
             + "("
@@ -15,15 +16,19 @@ public class DBOpenHelper extends SQLiteOpenHelper {
             + "user integer,"
             + "pref integer,"
             + "city integer,"
-            + "forestGroup integer,"
-            + "smallGroup integer,"
-            + "lat real,"
-            + "lon real,"
+            + "forest_group integer,"
+            + "small_group integer,"
+            + "lat text,"
+            + "lon text,"
             + "kind text,"
             + "height integer,"
             + "dia integer,"
-            + "volume integer"
+            + "volume integer,"
+            + "send_status integer,"
+            + "reg_date text,"
+            + "send_date text"
             + ")";
+
     private static final String TABLE_TREE_TYPE_CREATE =
             "CREATE TABLE IF NOT EXISTS tree_type_dictionary "
             + "("
@@ -60,13 +65,14 @@ public class DBOpenHelper extends SQLiteOpenHelper {
         if ( db != null )
         {
             ++m_writableDatabaseCount;
-
+/*
             if(Debug.isDebuggerConnected()) {
-                //db.execSQL("drop table if exists timber");
-                //db.execSQL("drop table if exists tree_type_dictionary");
-                //db.execSQL(TABLE_OFFLINE_DATA_CREATE);
-                //db.execSQL(TABLE_TREE_TYPE_CREATE);
+                db.execSQL("drop table if exists timber");
+                db.execSQL("drop table if exists tree_type_dictionary");
+                db.execSQL(TABLE_OFFLINE_DATA_CREATE);
+                db.execSQL(TABLE_TREE_TYPE_CREATE);
             }
+*/
         }
 
         return db;
