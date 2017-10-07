@@ -14,6 +14,7 @@ public class SpeechUtil {
     HashMap<String, String> timberTypeHash;
 
     public SpeechUtil(Context context) {
+        // TODO:あらかじめassetへ保管している辞書データのDBファイルを取得する
         // 辞書データをDBから取得してキャッシュする
         DBTimberTypeDictionaryOperation db = new DBTimberTypeDictionaryOperation(context);
         timberTypeHash = db.load();

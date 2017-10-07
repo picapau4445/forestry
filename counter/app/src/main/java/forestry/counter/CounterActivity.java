@@ -1,6 +1,5 @@
 package forestry.counter;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.speech.RecognitionListener;
@@ -34,9 +33,7 @@ import forestry.counter.db.DBTimberOperation;
 import forestry.counter.dto.Timber;
 import forestry.counter.util.SpeechUtil;
 
-public class CounterActivity extends AppCompatActivity {
-
-    private Context context;
+public class CounterActivity extends AppCompatActivity implements TextToSpeech.OnInitListener{
 
     private SpeechRecognizer sr;
     private TextToSpeech tts;
@@ -51,16 +48,15 @@ public class CounterActivity extends AppCompatActivity {
 
     private int forestGroup = 0;
     private int smallGroup = 0;
-    private String kind;
-    private String dia;
 
-    //TODO:TextToSpeechのインスタンス生成で重くなっている→別スレッドか
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_counter);
 
         su = new SpeechUtil(getApplicationContext());
+
+        tts = new TextToSpeech(this, this);
 
         dbTimber = new DBTimberOperation(getApplicationContext());
 
@@ -106,8 +102,6 @@ public class CounterActivity extends AppCompatActivity {
             });
         }
 
-
-        //Intent intent = getIntent();
     }
 
     @Override
@@ -151,7 +145,7 @@ public class CounterActivity extends AppCompatActivity {
     }
 
     // TextToSpeechのOverride
-    //@Override
+    @Override
     public void onInit(int status) {
 
         if (status == TextToSpeech.SUCCESS) {
@@ -472,7 +466,8 @@ public class CounterActivity extends AppCompatActivity {
                 speechText(convertString, false);
 
                 // TODO:池田町固定
-                data.setRegDate(new Date());
+                data.setRegDate((new SimpleDateFormat("yyyy/MM/dd hh:mm:ss", Locale.JAPANESE))
+                        .format(new Date()));
                 data.setUser(1);
                 data.setPref(14);
                 data.setCity(14);
@@ -487,6 +482,7 @@ public class CounterActivity extends AppCompatActivity {
                 displayResult(convertString);
 
                 // 立木データ送信
+                // TODO:オフラインである場合は送信しないようにしたい
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
@@ -502,6 +498,7 @@ public class CounterActivity extends AppCompatActivity {
             }
             else {
                 // 正しく認識されなかったメッセージ
+                //TODO:しゃべった言葉を樹種として何でも登録できるようになっているのを修正する
                 //speechText("樹種と直径が正しく認識できませんでした。もう一度話してください", false);
             }
 
@@ -622,7 +619,7 @@ public class CounterActivity extends AppCompatActivity {
         }
 
         public void onResults(Bundle results) {
-            String convertString;
+
             final int[] data;
 
             ArrayList results_array =
@@ -642,10 +639,10 @@ public class CounterActivity extends AppCompatActivity {
                 return;
             }
 
-            // TODO:音声テキストデータの変換
+            // TODO:音声テキストデータの林班・小班への変換(現在固定値)
             data = su.convertResultToGroup(resultsString);
 
-            // 樹種と胸高直径が取得できた場合
+            // 林班・小班の数値が取得できた場合
             if(data.length == 2) {
                 // テキストセットする
                 editForestGroup.setText(String.valueOf(data[0]));
@@ -653,7 +650,7 @@ public class CounterActivity extends AppCompatActivity {
             }
             else {
                 // 正しく認識されなかったメッセージ
-                //speechText("樹種と直径が正しく認識できませんでした。もう一度話してください", false);
+                //speechText("林班・小班が正しく認識できませんでした。もう一度話してください", false);
             }
 
         }
