@@ -1,5 +1,6 @@
 package forestry.counter;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.speech.RecognitionListener;
@@ -13,6 +14,7 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -32,7 +34,9 @@ import forestry.counter.db.DBTimberOperation;
 import forestry.counter.dto.Timber;
 import forestry.counter.util.SpeechUtil;
 
-public class CounterActivity extends AppCompatActivity implements TextToSpeech.OnInitListener {
+public class CounterActivity extends AppCompatActivity {
+
+    private Context context;
 
     private SpeechRecognizer sr;
     private TextToSpeech tts;
@@ -56,8 +60,6 @@ public class CounterActivity extends AppCompatActivity implements TextToSpeech.O
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_counter);
 
-        tts = new TextToSpeech(this, this);
-
         su = new SpeechUtil(getApplicationContext());
 
         dbTimber = new DBTimberOperation(getApplicationContext());
@@ -70,6 +72,16 @@ public class CounterActivity extends AppCompatActivity implements TextToSpeech.O
 
         textResult = new TextView(this);
         textResult = (TextView)findViewById((R.id.textResult));
+
+        ImageButton buttonSpeechGroup = (ImageButton)findViewById(R.id.img_button_speech_group);
+        if(buttonSpeechGroup != null ) {
+            buttonSpeechGroup.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    startListeningGroup();
+                }
+            });
+        }
 
         Button buttonStart = (Button)findViewById(R.id.buttonStart);
         if(buttonStart != null ) {
@@ -94,6 +106,7 @@ public class CounterActivity extends AppCompatActivity implements TextToSpeech.O
             });
         }
 
+
         //Intent intent = getIntent();
     }
 
@@ -108,22 +121,37 @@ public class CounterActivity extends AppCompatActivity implements TextToSpeech.O
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        stopListening();
+
+        if(tts != null) {
+            if (tts.isSpeaking()) {
+                tts.stop();
+            }
+            tts.shutdown();
+            tts = null;
+        }
+    }
+
+    @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if(keyCode== KeyEvent.KEYCODE_BACK){
             stopListening();
 
-            if(tts != null && tts.isSpeaking()) {
-                tts.stop();
-
+            if(tts != null) {
+                if (tts.isSpeaking()) {
+                    tts.stop();
+                }
+                tts.shutdown();
+                tts = null;
             }
-            tts.shutdown();
-            tts = null;
         }
         return super.onKeyDown(keyCode, event);
     }
 
     // TextToSpeechのOverride
-    @Override
+    //@Override
     public void onInit(int status) {
 
         if (status == TextToSpeech.SUCCESS) {
@@ -149,12 +177,14 @@ public class CounterActivity extends AppCompatActivity implements TextToSpeech.O
         int intSmallGroup;
 
         if(sr != null) {
-            Toast.makeText(getApplicationContext(), "既に音声入力を開始しています", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(),
+                    "既に音声入力を開始しています", Toast.LENGTH_SHORT).show();
             return false;
         }
 
         if(TextUtils.isEmpty(strForestGroup) || TextUtils.isEmpty(strSmallGroup) ) {
-            Toast.makeText(getApplicationContext(), "林班または小班が未入力です", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(),
+                    "林班または小班が未入力です", Toast.LENGTH_SHORT).show();
             return false;
         }
 
@@ -174,18 +204,37 @@ public class CounterActivity extends AppCompatActivity implements TextToSpeech.O
     }
 
     public void speechText(CharSequence text, boolean isDisplayToast) {
-        if (tts != null) {
-            if (text.length() > 0) {
-                if (tts.isSpeaking()) {
-                    tts.stop();
-                }
+        if (tts == null) {
+            tts = new TextToSpeech(getApplication(), new TextToSpeech.OnInitListener() {
+                @Override
+                public void onInit(int status) {
+                    if (status == TextToSpeech.SUCCESS) {
+                        Locale locale = Locale.JAPANESE;
 
-                if (isDisplayToast) {
-                    Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT).show();
-                }
+                        if (tts.isLanguageAvailable(locale) >= TextToSpeech.LANG_AVAILABLE) {
+                            tts.setLanguage(locale);
+                        } else {
+                            Log.d("", "音声合成が使えません");
+                        }
+                    } else {
+                        Log.d("", "音声合成が使えません");
+                    }
 
-                tts.speak((String) text, android.speech.tts.TextToSpeech.QUEUE_FLUSH, null);
+                    // 林班小班を入れてください
+                    //speechText("りんぱんとしょうはんを入力して、スタートしてください", false);
+                }
+            });
+        }
+        if (text.length() > 0) {
+            if (tts.isSpeaking()) {
+                tts.stop();
             }
+
+            if (isDisplayToast) {
+                Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT).show();
+            }
+
+            tts.speak((String) text, android.speech.tts.TextToSpeech.QUEUE_FLUSH, null);
         }
     }
 
@@ -208,7 +257,41 @@ public class CounterActivity extends AppCompatActivity implements TextToSpeech.O
 
             Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
             // Web検索モデル
-            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_WEB_SEARCH);
+            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                    RecognizerIntent.LANGUAGE_MODEL_WEB_SEARCH);
+            // TODO:オフラインモードの音声認識の精度は0に等しくなるので、辞書から引き当ては必須
+            // 強制的にオフラインモードで使用させる
+            //intent.putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true);
+
+            sr.startListening(intent);
+        } catch (Exception ex) {
+            Toast.makeText(getApplicationContext(), "音声認識が開始できませんでした",
+                    Toast.LENGTH_LONG).show();
+            finish();
+        }
+    }
+
+    // TODO:サービスとしてバックグラウンド動作するようにする
+    protected void startListeningGroup() {
+        try {
+            if (sr != null) {
+                sr.cancel();
+                sr.destroy();
+                sr = null;
+            }
+
+            sr = SpeechRecognizer.createSpeechRecognizer(this);
+            if (!SpeechRecognizer.isRecognitionAvailable(getApplicationContext())) {
+                Toast.makeText(getApplicationContext(), "音声認識が使えません",
+                        Toast.LENGTH_LONG).show();
+                finish();
+            }
+            sr.setRecognitionListener(new GroupRecognitionListener());
+
+            Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+            // Web検索モデル
+            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                    RecognizerIntent.LANGUAGE_MODEL_WEB_SEARCH);
             // TODO:オフラインモードの音声認識の精度は0に等しくなるので、辞書から引き当ては必須
             // 強制的にオフラインモードで使用させる
             //intent.putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true);
@@ -339,7 +422,8 @@ public class CounterActivity extends AppCompatActivity implements TextToSpeech.O
         }
 
         public void onPartialResults(Bundle partialResults) {
-            ArrayList results_array = partialResults.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+            ArrayList results_array =
+                    partialResults.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
 
             if (results_array == null || results_array.size() == 0) {
                 restartListeningService();
@@ -358,7 +442,8 @@ public class CounterActivity extends AppCompatActivity implements TextToSpeech.O
             String convertString;
             final Timber data;
 
-            ArrayList results_array = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+            ArrayList results_array =
+                    results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
 
             if (results_array == null || results_array.size() == 0) {
                 restartListeningService();
@@ -387,14 +472,16 @@ public class CounterActivity extends AppCompatActivity implements TextToSpeech.O
                 speechText(convertString, false);
 
                 // TODO:池田町固定
+                data.setRegDate(new Date());
                 data.setUser(1);
                 data.setPref(14);
                 data.setCity(14);
                 data.setForestGroup(forestGroup);
                 data.setSmallGroup(smallGroup);
+                data.setSend(1);
 
                 // 立木カウントデータのローカル保存
-                dbTimber.insert(data);
+                final long rowId = dbTimber.insert(data);
 
                 // 変換後テキストデータの画面表示
                 displayResult(convertString);
@@ -404,7 +491,9 @@ public class CounterActivity extends AppCompatActivity implements TextToSpeech.O
                     @Override
                     public void run() {
                         try {
-                            doPost(data);
+                            if(doPost(data).equals("1")) {
+                                dbTimber.updateSendStatus(rowId, 1, new Date());
+                            }
                         } catch (Exception ex) {
                             System.out.println(ex);
                         }
@@ -423,7 +512,7 @@ public class CounterActivity extends AppCompatActivity implements TextToSpeech.O
         }
     }
 
-    public void doPost(Timber data) throws IOException {
+    public String doPost(Timber data) throws IOException {
         final String json = "{"
                             + "\"pref\":" + data.getPref() + ", "
                             + "\"city\":" + data.getCity() + ", "
@@ -453,14 +542,125 @@ public class CounterActivity extends AppCompatActivity implements TextToSpeech.O
             ps.close();
 
             String buffer;
-            BufferedReader reader = new BufferedReader(new InputStreamReader(con.getInputStream(), "UTF-8"));
+            BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(con.getInputStream(), "UTF-8"));
             buffer = reader.readLine();
             System.out.println(buffer);
 
             con.disconnect();
+            return buffer;
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        return "";
     }
+
+    /**
+     * 音声認識(SpeechRecognizer)用のリスナークラス
+     */
+    class GroupRecognitionListener implements RecognitionListener {
+
+        public void onBeginningOfSpeech() {
+        }
+
+        public void onBufferReceived(byte[] buffer) {
+        }
+
+        public void onEndOfSpeech() {
+        }
+
+        public void onError(int error) {
+            String reason = "";
+            switch (error) {
+                case SpeechRecognizer.ERROR_AUDIO:
+                    reason = "ERROR_AUDIO";
+                    break;
+                case SpeechRecognizer.ERROR_CLIENT:
+                    reason = "ERROR_CLIENT";
+                    break;
+                case SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS:
+                    reason = "ERROR_INSUFFICIENT_PERMISSIONS";
+                    break;
+                case SpeechRecognizer.ERROR_NETWORK:
+                    reason = "ERROR_NETWORK";
+                    /* ネットワーク接続をチェックする処理をここに入れる */
+                    break;
+                case SpeechRecognizer.ERROR_NETWORK_TIMEOUT:
+                    reason = "ERROR_NETWORK_TIMEOUT";
+                    break;
+                case SpeechRecognizer.ERROR_NO_MATCH:
+                    //reason = "ERROR_NO_MATCH";
+                    break;
+                case SpeechRecognizer.ERROR_RECOGNIZER_BUSY:
+                    reason = "ERROR_RECOGNIZER_BUSY";
+                    break;
+                case SpeechRecognizer.ERROR_SERVER:
+                    reason = "ERROR_SERVER";
+                    /* ネットワーク接続をチェックをする処理をここに入れる */
+                    break;
+                case SpeechRecognizer.ERROR_SPEECH_TIMEOUT:
+                    reason = "ERROR_SPEECH_TIMEOUT";
+                    break;
+            }
+
+            if(reason.length() > 0) {
+                Toast.makeText(getApplicationContext(), reason, Toast.LENGTH_SHORT).show();
+            }
+
+        }
+
+        public void onEvent(int eventType, Bundle params) {
+        }
+
+        public void onPartialResults(Bundle partialResults) {
+        }
+
+        public void onReadyForSpeech(Bundle params) {
+            Toast.makeText(getApplicationContext(), "音声で「林班○○、小班○○」",
+                    Toast.LENGTH_SHORT).show();
+        }
+
+        public void onResults(Bundle results) {
+            String convertString;
+            final int[] data;
+
+            ArrayList results_array =
+                    results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+
+            if (results_array == null || results_array.size() == 0) {
+                Toast.makeText(getApplicationContext(), "林班・小班を認識できませんでした",
+                        Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            String resultsString = results_array.get(0).toString();
+
+            if (resultsString.length() == 0) {
+                Toast.makeText(getApplicationContext(), "林班・小班を認識できませんでした",
+                        Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // TODO:音声テキストデータの変換
+            data = su.convertResultToGroup(resultsString);
+
+            // 樹種と胸高直径が取得できた場合
+            if(data.length == 2) {
+                // テキストセットする
+                editForestGroup.setText(String.valueOf(data[0]));
+                editSmallGroup.setText(String.valueOf(data[1]));
+            }
+            else {
+                // 正しく認識されなかったメッセージ
+                //speechText("樹種と直径が正しく認識できませんでした。もう一度話してください", false);
+            }
+
+        }
+
+        public void onRmsChanged(float rmsdB) {
+        }
+    }
+
 
 }

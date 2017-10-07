@@ -6,22 +6,45 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.SparseArray;
 
-import java.sql.Date;
+import java.util.Date;
 
+import forestry.counter.R;
 import forestry.counter.dto.Timber;
 
 public class DBTimberOperation {
 
     private SQLiteDatabase m_db;
-    private static final String TBL_NAME = "timber";
+    private static final String TABLE_NAME = "timber";
+    private static final String TABLE_CREATE =
+            "CREATE TABLE IF NOT EXISTS timber "
+                    + "("
+                    + "id integer primary key autoincrement,"
+                    + "user integer,"
+                    + "pref integer,"
+                    + "city integer,"
+                    + "forest_group integer,"
+                    + "small_group integer,"
+                    + "lat text,"
+                    + "lon text,"
+                    + "kind text,"
+                    + "height integer,"
+                    + "dia integer,"
+                    + "volume integer,"
+                    + "send_status integer,"
+                    + "reg_date text,"
+                    + "send_date text"
+                    + ")";
 
     public DBTimberOperation(Context context)
     {
-        DBOpenHelper helper = DBOpenHelper.getInstance( context );
-        if( helper != null )
+        DBOpenHelper helper = DBOpenHelper.getInstance(
+                context, context.getString(R.string.db_timber) );
+        if( helper != null ) {
             m_db = helper.getWritableDatabase();
-        else
+            m_db.execSQL(TABLE_CREATE);
+        } else {
             m_db = null;
+        }
     }
 
     public void close() {
@@ -46,24 +69,24 @@ public class DBTimberOperation {
         val.put("send_status", 0 );
         val.put("reg_date", data.getRegDateString());
         val.put("send_date", "");
-        return m_db.insert( TBL_NAME, null, val );
+        return m_db.insert(TABLE_NAME, null, val );
     }
 
-    public void updateSendStatus( int id, int sendStatus, Date sendDate)
+    public void updateSendStatus( long rowId, int sendStatus, Date sendDate)
     {
         ContentValues val = new ContentValues();
 
         val.put("send_status", sendStatus );
         val.put("send_date", sendDate.toString() );
-        m_db.update( TBL_NAME, val, "id=?", new String[] { Integer.toString( id ) });
+        m_db.update(TABLE_NAME, val, "rowid=?", new String[] { Long.toString( rowId ) });
     }
 
     public int delete( int id)
     {
         if(id == -1) {
-            return m_db.delete(TBL_NAME, null, null);
+            return m_db.delete(TABLE_NAME, null, null);
         } else {
-            return m_db.delete(TBL_NAME, "id=?", new String[]{Integer.toString(id)});
+            return m_db.delete(TABLE_NAME, "id=?", new String[]{Integer.toString(id)});
         }
     }
 
@@ -77,13 +100,16 @@ public class DBTimberOperation {
             return null;
         }
 
-        c = m_db.query( TBL_NAME,
+        c = m_db.query(TABLE_NAME,
                         new String[] {"user", "pref", "city", "forest_group", "small_group",
                                 "lat", "lon", "kind", "height", "dia", "volume", "send_status",
                                 "reg_date", "send_date"},
                         "user = ? and pref = ? and city = ?",
-                        new String[] {String.valueOf(user), String.valueOf(pref), String.valueOf(city)},
-                        null, null, null );
+                        new String[] {
+                                String.valueOf(user),
+                                String.valueOf(pref),
+                                String.valueOf(city)},
+                null, null, null );
         res = c.moveToFirst();
 
         while(res)

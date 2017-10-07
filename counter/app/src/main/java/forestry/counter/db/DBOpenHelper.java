@@ -3,59 +3,27 @@ package forestry.counter.db;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.os.Debug;
 
 public class DBOpenHelper extends SQLiteOpenHelper {
 
-    private static final String DB_NAME = "forestry.counter.db";
-
-    private static final String TABLE_OFFLINE_DATA_CREATE =
-            "CREATE TABLE IF NOT EXISTS timber "
-            + "("
-            + "id integer primary key autoincrement,"
-            + "user integer,"
-            + "pref integer,"
-            + "city integer,"
-            + "forest_group integer,"
-            + "small_group integer,"
-            + "lat text,"
-            + "lon text,"
-            + "kind text,"
-            + "height integer,"
-            + "dia integer,"
-            + "volume integer,"
-            + "send_status integer,"
-            + "reg_date text,"
-            + "send_date text"
-            + ")";
-
-    private static final String TABLE_TREE_TYPE_CREATE =
-            "CREATE TABLE IF NOT EXISTS tree_type_dictionary "
-            + "("
-            + "id integer primary key autoincrement,"
-            + "source text,"
-            + "destination text"
-            + ")";
-
     private static final int DB_VERSION = 1;
     private int m_writableDatabaseCount = 0;
-
     private static DBOpenHelper m_instance = null;
 
     synchronized static
-    public DBOpenHelper getInstance( Context context )
+    public DBOpenHelper getInstance( Context context, String dbName )
     {
         if ( m_instance == null )
         {
-            m_instance = new DBOpenHelper( context.getApplicationContext() );
+            m_instance = new DBOpenHelper( context.getApplicationContext(), dbName );
         }
         
         return m_instance;
     }
 
-    public DBOpenHelper( Context context )
+    public DBOpenHelper( Context context, String dbName )
     {
-        super( context, DB_NAME, null, DB_VERSION );
+        super( context, dbName, null, DB_VERSION );
     }
 
     @Override
@@ -65,14 +33,6 @@ public class DBOpenHelper extends SQLiteOpenHelper {
         if ( db != null )
         {
             ++m_writableDatabaseCount;
-/*
-            if(Debug.isDebuggerConnected()) {
-                db.execSQL("drop table if exists timber");
-                db.execSQL("drop table if exists tree_type_dictionary");
-                db.execSQL(TABLE_OFFLINE_DATA_CREATE);
-                db.execSQL(TABLE_TREE_TYPE_CREATE);
-            }
-*/
         }
 
         return db;
@@ -92,13 +52,10 @@ public class DBOpenHelper extends SQLiteOpenHelper {
     
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL(TABLE_OFFLINE_DATA_CREATE);
-        db.execSQL(TABLE_TREE_TYPE_CREATE);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        // TODO Auto-generated method stub
     }
 
     

@@ -15,6 +15,9 @@
     <string name="title_start">音声入力スタート</string>
     <string name="title_stop">音声入力ストップ</string>
     <string name="url">http://traceabilityrecord-dev.us-east-1.elasticbeanstalk.com/record/</string>
+    <string name="desc_send">データの送信状況</string>
+    <string name="db_timber">forestry.counter.timber.db</string>
+    <string name="db_timber_type_dictionary">forestry.counter.timber_type_dictionary.db</string>
 
 
 </resources>

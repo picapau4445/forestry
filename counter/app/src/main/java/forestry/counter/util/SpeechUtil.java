@@ -5,22 +5,27 @@ import android.text.TextUtils;
 
 import java.util.HashMap;
 
-import forestry.counter.db.DBTreeTypeOperation;
+import forestry.counter.db.DBTimberTypeDictionaryOperation;
 import forestry.counter.dto.Timber;
 
 
 public class SpeechUtil {
 
-    HashMap<String, String> treeTypeHash;
+    HashMap<String, String> timberTypeHash;
 
     public SpeechUtil(Context context) {
         // 辞書データをDBから取得してキャッシュする
-        DBTreeTypeOperation db = new DBTreeTypeOperation(context);
-        treeTypeHash = db.load();
+        DBTimberTypeDictionaryOperation db = new DBTimberTypeDictionaryOperation(context);
+        timberTypeHash = db.load();
     }
 
     public void saveRealResult(String resultsString) {
         // TODO:音声入力された生のテキストデータを保管し、送信する仕組みが欲しい
+    }
+
+    public int[] convertResultToGroup(String resultsString) {
+        int[] group = {174, 13};
+        return group;
     }
 
     public Timber convertResultToData(String resultsString) {
@@ -36,9 +41,9 @@ public class SpeechUtil {
 
         // TODO:音声入力されたテキストデータから専門用語のみ辞書データから引き当てる
         data.setKind(strType);
-        //if(treeTypeHash.containsKey(strType)) {
-        //    data.setKind(treeTypeHash.get(strType));
-        //}
+        if(timberTypeHash.containsKey(strType)) {
+            data.setKind(timberTypeHash.get(strType));
+        }
         //else {
         //    return null;
         //}
