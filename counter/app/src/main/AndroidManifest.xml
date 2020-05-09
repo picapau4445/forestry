@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="forestry.counter">
+    package="com.s4hpi.forestry.counter">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
     <application
         android:allowBackup="true"
@@ -20,13 +24,22 @@
         </activity>
         <activity
             android:name=".CounterActivity"
-            android:label="@string/app_name"
+            android:label="@string/nav_counter"
             android:theme="@style/AppTheme.NoActionBar">
-
         </activity>
+
+        <service
+            android:name=".service.ListeningService"
+            android:enabled="true"
+            android:exported="true"
+            android:theme="@style/AppTheme.NoActionBar">
+        </service>
     </application>
 
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
 </manifest>
+
+

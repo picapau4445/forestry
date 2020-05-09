@@ -14,19 +14,41 @@
             android:id="@+id/text_date"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1" />
+            android:layout_weight="1"
+            android:paddingRight="1dp"
+            android:paddingLeft="1dp" />
+
+        <TextView
+            android:id="@+id/text_forest_group"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1.2"
+            android:paddingLeft="1dp"
+            android:paddingRight="1dp" />
+
+        <TextView
+            android:id="@+id/text_small_group"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1.2"
+            android:paddingLeft="1dp"
+            android:paddingRight="1dp" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:id="@+id/text_timber_type" />
+            android:id="@+id/text_timber_type"
+            android:paddingLeft="1dp"
+            android:paddingRight="1dp" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:id="@+id/text_dia" />
+            android:layout_weight="1.2"
+            android:id="@+id/text_dia"
+            android:paddingLeft="1dp"
+            android:paddingRight="1dp" />
 
     </LinearLayout>
 

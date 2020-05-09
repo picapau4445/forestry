@@ -2,13 +2,15 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
+        android:id="@+id/action_send_offline_data"
+        android:orderInCategory="100"
+        android:title="@string/action_send_offline_data"
+        android:icon="@android:drawable/stat_sys_upload"
+        app:showAsAction="ifRoom" />
+    <!--item
         android:id="@+id/action_settings"
         android:orderInCategory="100"
         android:title="@string/action_settings"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/action_version"
-        android:orderInCategory="100"
-        android:title="@string/action_version"
-        app:showAsAction="never" />
+        app:showAsAction="never" /-->
+
 </menu>

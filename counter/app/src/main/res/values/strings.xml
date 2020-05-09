@@ -5,9 +5,9 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
     <string name="action_settings">アプリ設定</string>
-    <string name="user_name">テストユーザー</string>
+    <string name="user_name">テストユーザー(十勝：池田町)</string>
     <string name="user_address">test@example.com</string>
-    <string name="action_version">バージョン情報</string>
+    <string name="nav_about">アプリについて</string>
     <string name="nav_counter">カウンター</string>
     <string name="nav_list">カウント一覧</string>
     <string name="title_forest_group">林班</string>
@@ -16,8 +16,16 @@
     <string name="title_stop">音声入力ストップ</string>
     <string name="url">http://traceabilityrecord-dev.us-east-1.elasticbeanstalk.com/record/</string>
     <string name="desc_send">データの送信状況</string>
-    <string name="db_timber">forestry.counter.timber.db</string>
-    <string name="db_timber_type_dictionary">forestry.counter.timber_type_dictionary.db</string>
+    <string name="db_timber">com.s4hpi.forestry.counter.timber.db</string>
+    <string name="db_timber_type_dictionary">com.s4hpi.forestry.counter.timber_type_dictionary.db</string>
+    <string name="action_send_offline_data">測定データの送信</string>
+    <string name="label_company">Software for Primary Industries</string>
+    <string name="label_please">ご意見・ご感想をお聞かせ下さい</string>
+    <string name="title_height">樹高</string>
+    <string name="label_listening">音声認識中:</string>
+
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="service_listening_active">音声入力サービスがアクティブです</string>
 
 
 </resources>

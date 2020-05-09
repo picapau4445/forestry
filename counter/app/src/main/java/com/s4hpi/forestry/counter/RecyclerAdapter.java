@@ -1,4 +1,4 @@
-package forestry.counter;
+package com.s4hpi.forestry.counter;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
@@ -9,7 +9,10 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import forestry.counter.dto.Timber;
+import java.text.SimpleDateFormat;
+import java.util.Locale;
+
+import com.s4hpi.forestry.counter.dto.Timber;
 
 public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHolder> {
 
@@ -35,7 +38,11 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
     public void onBindViewHolder(ViewHolder viewHolder, final int i) {
         // データ表示
         if (mData != null && mData.size() > i && mData.get(i) != null) {
-            viewHolder.textDate.setText(mData.get(i).getRegDateString());
+            viewHolder.textDate.setText(
+                    (new SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.JAPANESE))
+                    .format(mData.get(i).getRegDate()));
+            viewHolder.textForestGroup.setText(String.valueOf(mData.get(i).getForestGroup()));
+            viewHolder.textSmallGroup.setText(String.valueOf(mData.get(i).getSmallGroup()));
             viewHolder.textTimberType.setText(mData.get(i).getKind());
             viewHolder.textDia.setText(String.valueOf(mData.get(i).getDia()));
             if (mData.get(i).getSend() == 1) {
@@ -67,6 +74,8 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
     class ViewHolder extends RecyclerView.ViewHolder {
 
         TextView textDate;
+        TextView textForestGroup;
+        TextView textSmallGroup;
         TextView textTimberType;
         TextView textDia;
         ImageView imageSend;
@@ -74,6 +83,8 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
         public ViewHolder(View itemView) {
             super(itemView);
             textDate = (TextView) itemView.findViewById(R.id.text_date);
+            textForestGroup = (TextView) itemView.findViewById(R.id.text_forest_group);
+            textSmallGroup = (TextView) itemView.findViewById(R.id.text_small_group);
             textTimberType = (TextView) itemView.findViewById(R.id.text_timber_type);
             textDia = (TextView) itemView.findViewById(R.id.text_dia);
             imageSend = (ImageView) itemView.findViewById(R.id.image_send);

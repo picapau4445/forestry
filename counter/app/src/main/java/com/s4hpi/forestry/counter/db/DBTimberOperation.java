@@ -1,4 +1,4 @@
-package forestry.counter.db;
+package com.s4hpi.forestry.counter.db;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -6,10 +6,12 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.SparseArray;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
-import forestry.counter.R;
-import forestry.counter.dto.Timber;
+import com.s4hpi.forestry.counter.R;
+import com.s4hpi.forestry.counter.dto.Timber;
 
 public class DBTimberOperation {
 
@@ -66,9 +68,9 @@ public class DBTimberOperation {
         val.put("height", data.getHeight() );
         val.put("dia", data.getDia() );
         val.put("volume", data.getVolume() );
-        val.put("send_status", 0 );
+        val.put("send_status", data.getSend() );
         val.put("reg_date", data.getRegDateString());
-        val.put("send_date", "");
+        val.put("send_date", data.getSendDateString());
         return m_db.insert(TABLE_NAME, null, val );
     }
 
@@ -77,8 +79,9 @@ public class DBTimberOperation {
         ContentValues val = new ContentValues();
 
         val.put("send_status", sendStatus );
-        val.put("send_date", sendDate.toString() );
-        m_db.update(TABLE_NAME, val, "rowid=?", new String[] { Long.toString( rowId ) });
+        val.put("send_date", (new SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.JAPANESE))
+                .format(new Date()) );
+        m_db.update(TABLE_NAME, val, "rowid=?", new String[]{Long.toString(rowId)});
     }
 
     public int delete( int id)
@@ -90,7 +93,30 @@ public class DBTimberOperation {
         }
     }
 
-    public SparseArray<Timber> load(int user, int pref, int city)
+    public SparseArray<Timber> getTimberDataOrderByRegDate(int user, int pref, int city)
+    {
+        String selection = "user = ? and pref = ? and city = ?";
+        String[] selectionArgs = new String[] {
+                String.valueOf(user),
+                String.valueOf(pref),
+                String.valueOf(city)};
+        String orderBy = "reg_date DESC";
+
+        return load(selection, selectionArgs, orderBy);
+    }
+
+    public SparseArray<Timber> getTimberDataNotSend(int user, int pref, int city)
+    {
+        String selection = "user = ? and pref = ? and city = ? and send_status <> 1";
+        String[] selectionArgs = new String[] {
+                String.valueOf(user),
+                String.valueOf(pref),
+                String.valueOf(city)};
+
+        return load(selection, selectionArgs, null);
+    }
+
+    public SparseArray<Timber> load(String selection, String[] selectionArgs, String orderBy)
     {
         boolean res;
         Cursor c;
@@ -101,21 +127,19 @@ public class DBTimberOperation {
         }
 
         c = m_db.query(TABLE_NAME,
-                        new String[] {"user", "pref", "city", "forest_group", "small_group",
+                        new String[] {"rowid", "user", "pref", "city", "forest_group", "small_group",
                                 "lat", "lon", "kind", "height", "dia", "volume", "send_status",
                                 "reg_date", "send_date"},
-                        "user = ? and pref = ? and city = ?",
-                        new String[] {
-                                String.valueOf(user),
-                                String.valueOf(pref),
-                                String.valueOf(city)},
-                null, null, null );
+                selection,
+                selectionArgs,
+                null, null, orderBy );
         res = c.moveToFirst();
 
         while(res)
         {
             int colIndex=0;
             Timber data = new Timber();
+            data.setRowId(c.getLong(colIndex));colIndex++;
             data.setUser(c.getInt(colIndex));colIndex++;
             data.setPref(c.getInt(colIndex));colIndex++;
             data.setCity(c.getInt(colIndex));colIndex++;

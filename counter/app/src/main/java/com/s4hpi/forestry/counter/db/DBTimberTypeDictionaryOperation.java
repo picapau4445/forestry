@@ -1,12 +1,13 @@
-package forestry.counter.db;
+package com.s4hpi.forestry.counter.db;
 
+import java.io.IOException;
 import java.util.HashMap;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
-import forestry.counter.R;
+import com.s4hpi.forestry.counter.R;
 
 public class DBTimberTypeDictionaryOperation {
 
@@ -28,10 +29,17 @@ public class DBTimberTypeDictionaryOperation {
         DBOpenHelper helper = DBOpenHelper.getInstance(
                 context, context.getString(R.string.db_timber_type_dictionary) );
         if( helper != null ) {
-            m_db = helper.getWritableDatabase();
-            m_db.execSQL(TABLE_CREATE);
+            m_db = helper.getReadableDatabase();
         } else {
             m_db = null;
+        }
+    }
+
+    public static void createDBTimberTypeDictionary(Context context) throws IOException {
+        DBOpenHelper helper = DBOpenHelper.getInstance(
+                context, context.getString(R.string.db_timber_type_dictionary) );
+        if( helper != null ) {
+            helper.createEmptyDataBase(context);
         }
     }
 
@@ -62,7 +70,7 @@ public class DBTimberTypeDictionaryOperation {
         boolean res;
         Cursor c;
         HashMap<String, String> hash = new HashMap<>();
-        
+
         if( m_db == null ) {
             return null;
         }

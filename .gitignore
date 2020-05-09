@@ -39,6 +39,8 @@ counter/.idea/tasks.xml
 counter/.idea/gradle.xml
 counter/.idea/dictionaries
 counter/.idea/libraries
+counter/.idea/caches
+counter/.idea/cpdeStyles
 
 # Keystore files
 *.jks
@@ -53,3 +55,7 @@ google-services.json
 freeline.py
 freeline/
 freeline_project_description.json
+counter/gradle/wrapper/gradle-wrapper.properties
+counter/build.gradle
+counter/.idea/modules.xml
+counter/.idea/misc.xml

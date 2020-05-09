@@ -1,4 +1,4 @@
-package forestry.counter;
+package com.s4hpi.forestry.counter;
 
 import android.view.View;
 
